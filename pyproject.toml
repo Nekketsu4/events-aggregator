@@ -1,0 +1,20 @@
+[project]
+name = "events-aggregator"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.133.0",
+    "pydantic>=2.12.5",
+    "pydantic-settings>=2.13.1",
+    "ruff>=0.15.2",
+    "uvicorn>=0.41.0",
+]
+
+[tool.ruff.lint]
+extend-select = ["I"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
