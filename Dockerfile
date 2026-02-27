@@ -31,8 +31,8 @@ RUN uv sync --no-dev
 # Copy application source
 COPY . .
 
-# # Make run script executable
-# RUN chmod +x run.sh
+# Make run script executable
+RUN chmod +x run.sh
 
 # Change ownership of the app directory to appuser
 RUN chown -R appuser:appuser /app
@@ -42,5 +42,5 @@ USER appuser
 
 EXPOSE 8000
 
-# CMD ["bash", "./run.sh"]
-CMD ["uv", "run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["bash", "./run.sh"]
+# CMD ["uv", "run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
