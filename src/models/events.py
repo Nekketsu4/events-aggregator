@@ -22,8 +22,12 @@ class Place(Base):
     city: Mapped[str] = mapped_column(String(100), nullable=False)
     address: Mapped[str] = mapped_column(Text, nullable=False)
     seats_pattern: Mapped[str] = mapped_column(Text, nullable=False)
-    changed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    changed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
 
     events: Mapped[list["Event"]] = relationship("Event", back_populates="place")
 
@@ -36,15 +40,23 @@ class Event(Base):
     place_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("places.id"), nullable=False
     )
-    event_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    event_time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
     registration_deadline: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )
     status: Mapped[EventStatus] = mapped_column(Enum(EventStatus), nullable=False)
     number_of_visitors: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    changed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    status_changed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    changed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    status_changed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
 
     place: Mapped["Place"] = relationship("Place", back_populates="events")
     tickets: Mapped[list["Ticket"]] = relationship("Ticket", back_populates="event")

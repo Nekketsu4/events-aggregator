@@ -14,5 +14,7 @@ class SyncMetadata(Base):
         DateTime(timezone=True), nullable=True
     )
     last_changed_at: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    sync_status: Mapped[str] = mapped_column(String(50), nullable=False, default="pending")
+    sync_status: Mapped[str] = mapped_column(
+        String(50), nullable=False, default="pending"
+    )
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)

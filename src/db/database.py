@@ -9,6 +9,7 @@ from src.core.config import settings
 class Base(DeclarativeBase):
     pass
 
+
 # Создание асинхронного движка базы данных
 engine = create_async_engine(settings.database_url, echo=False, pool_pre_ping=True)
 
@@ -31,4 +32,3 @@ async def get_async_db_session() -> AsyncGenerator[AsyncSession, None]:
         except Exception:
             await session.rollback()
             raise
-        
