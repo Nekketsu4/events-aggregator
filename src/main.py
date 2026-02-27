@@ -3,6 +3,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from src.schemas.schemas import HealthResponse
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -28,6 +30,6 @@ app.add_middleware(
 )
 
 
-@app.get("/api/health")
+@app.get("/api/health", response_model=HealthResponse)
 async def health_check():
-    return {"status": "ok"}
+    return HealthResponse(status="ok")
