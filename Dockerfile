@@ -16,9 +16,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Create non-root user for security
-RUN groupadd --gid 1001 appuser \
-    && useradd --uid 1001 --gid appuser --shell /bin/bash --create-home appuser
+# # Create non-root user for security
+# RUN groupadd --gid 1001 appuser \
+#     && useradd --uid 1001 --gid appuser --shell /bin/bash --create-home appuser
 
 WORKDIR /app
 
@@ -34,11 +34,11 @@ COPY . .
 # Make run script executable
 RUN chmod +x run.sh
 
-# Change ownership of the app directory to appuser
-RUN chown -R appuser:appuser /app
+# # Change ownership of the app directory to appuser
+# RUN chown -R appuser:appuser /app
 
-# Switch to non-root user
-USER appuser
+# # Switch to non-root user
+# USER appuser
 
 EXPOSE 8000
 
