@@ -17,7 +17,9 @@ WORKDIR /app
 COPY pyproject.toml uv.lock* ./
 
 # Install dependencies into system Python
-RUN uv sync --no-dev
+RUN uv sync --no-dev --frozen
+
+ENV PATH="/app/.venv/bin:$PATH"
 
 # Copy application source
 COPY . .
