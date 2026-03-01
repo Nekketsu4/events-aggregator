@@ -11,7 +11,7 @@ class Base(DeclarativeBase):
 
 
 # Создание асинхронного движка базы данных
-engine = create_async_engine(settings.database_url, echo=False, pool_pre_ping=True)
+engine = create_async_engine(settings.get_db, echo=False, pool_pre_ping=True)
 
 # Создание фабрики сессий
 AsyncSessionLocal = async_sessionmaker(
