@@ -16,9 +16,10 @@ WORKDIR /app
 # Copy dependency files
 COPY pyproject.toml uv.lock* ./
 
-# Install dependencies into system Python
+# Создаём venv явно и устанавливаем зависимости в него
 RUN uv sync --no-dev --frozen
 
+# Добавляем venv в PATH чтобы uvicorn был доступен напрямую
 ENV PATH="/app/.venv/bin:$PATH"
 
 # Copy application source
