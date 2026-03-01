@@ -47,7 +47,9 @@ settings = Settings()
 
 
 # Настройка логирования
-log_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "logs", "log.txt")
+log_file_path = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "logs", "log.txt"
+)
 logger.add(
     log_file_path,
     format=settings.FORMAT_LOG,
