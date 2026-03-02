@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
-    POSTGRES_DB: str
+    POSTGRES_DATABASE_NAME: str
     POSTGRES_PORT: int
     POSTGRES_CONNECTION_STRING: str
 
@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     def get_db(self) -> str:
         return (
             f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@"
-            f"{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+            f"{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DATABASE_NAME}"
         )
 
 

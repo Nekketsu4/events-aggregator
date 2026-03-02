@@ -1,8 +1,8 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 
+from src.api.v1.endpoints.events import router as event_router
 from src.schemas.schemas import HealthResponse
 
 
@@ -21,13 +21,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.include_router(event_router, prefix="/api")
 
 
 @app.get("/api/health", response_model=HealthResponse)
