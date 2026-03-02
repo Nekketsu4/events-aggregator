@@ -11,6 +11,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
+# Создаем пользователя ДО того, как начнем копировать файлы
+RUN groupadd --gid 1001 appuser \
+    && useradd --uid 1001 --gid appuser --shell /bin/bash --create-home appuser
+
 WORKDIR /app
 
 # Copy dependency files
@@ -25,7 +29,15 @@ ENV PATH="/app/.venv/bin:$PATH"
 # Copy application source
 COPY . .
 
+RUN mkdir -p /app/src/logs && \
+    chown -R appuser:appuser /app/src/logs && \
+    chmod 755 /app/src/logs
+
+RUN chown -R appuser:appuser /app
+
 RUN chmod +x run.sh
+
+USER appuser
 
 EXPOSE 8000
 
