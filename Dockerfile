@@ -11,6 +11,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
+# Создаём пользователя до копирования файлов
+RUN useradd -u 1000 -m appuser
+
 WORKDIR /app
 
 # Copy dependency files
@@ -25,7 +28,10 @@ ENV PATH="/app/.venv/bin:$PATH"
 # Copy application source
 COPY . .
 
-RUN chmod +x run.sh
+# Передаём права на всю папку пользователю и делаем скрипт исполняемым
+RUN chown -R appuser:appuser /app && chmod +x run.sh
+
+USER appuser
 
 EXPOSE 8000
 
