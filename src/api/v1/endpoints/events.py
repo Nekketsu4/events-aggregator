@@ -10,7 +10,7 @@ from src.schemas import schemas
 router = APIRouter()
 
 
-@router.get("/events", response_model=schemas.EventListResponse)
+@router.get("/events")
 async def list_events(
     request: Request,
     date_from: date | None = Query(
@@ -18,9 +18,9 @@ async def list_events(
     ),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
-    db: AsyncSession = Depends(get_async_db_session),
+    session: AsyncSession = Depends(get_async_db_session),
 ):
-    repo = EventRepository(db)
+    repo = EventRepository(session)
     total, events = await repo.list_events(
         date_from=date_from, page=page, page_size=page_size
     )
