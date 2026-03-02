@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo "Running database migrations..."
-uv run alembic upgrade head
+echo "=== Running migrations ==="
+alembic upgrade head || echo "=== WARNING: migrations failed, starting anyway ==="
 
-echo "Starting Uvicorn..."
-exec uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 1
+echo "=== Starting Uvicorn on 0.0.0.0:8000 ==="
+exec uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 1
