@@ -25,11 +25,11 @@ class Settings(BaseSettings):
     EVENTS_PROVIDER_API_KEY: str = ""
 
     # БД локально
-    POSTGRES_HOST: str
-    POSTGRES_PORT: int
-    POSTGRES_USER: str
-    POSTGRES_DB: str
-    POSTGRES_PASSWORD: str
+    POSTGRES_HOST: str = "localhost"
+    POSTGRES_PORT: int = "5432"
+    POSTGRES_USER: str = ""
+    POSTGRES_DB: str = ""
+    POSTGRES_PASSWORD: str = ""
 
     # БД в LMS
     POSTGRES_USERNAME: str = ""
@@ -40,8 +40,8 @@ class Settings(BaseSettings):
     DATABASE_URL: str = ""
 
     # Логирование
-    FORMAT_LOG: str
-    LOG_ROTATION: str
+    FORMAT_LOG: str = "{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}"
+    LOG_ROTATION: str = "10 MB"
 
     @model_validator(mode="after")
     def build_database_url(self):
