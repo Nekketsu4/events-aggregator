@@ -1,6 +1,7 @@
 from datetime import date
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.database import get_async_db_session
@@ -10,7 +11,7 @@ from src.schemas import schemas
 router = APIRouter()
 
 
-@router.get("/events")
+@router.get("/events", response_model=schemas.EventListResponse)
 async def list_events(
     request: Request,
     date_from: date | None = Query(
@@ -51,4 +52,28 @@ async def list_events(
 
     return schemas.EventListResponse(
         count=total, next=next_url, previous=prev_url, results=results
+    )
+
+
+@router.get("/events/{event_id}", response_model=schemas.EventDetail)
+async def get_event(event_id: UUID, db: AsyncSession = Depends(get_async_db_session)):
+    repo = EventRepository(db)
+    event = await repo.get(str(event_id))
+    if event is None:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    return schemas.EventDetail(
+        id=event.id,
+        name=event.name,
+        place=schemas.PlaceDetail(
+            id=event.place.id,
+            name=event.place.name,
+            city=event.place.city,
+            address=event.place.address,
+            seats_pattern=event.place.seats_pattern,
+        ),
+        event_time=event.event_time,
+        registration_deadline=event.registration_deadline,
+        status=event.status,
+        number_of_visitors=event.number_of_visitors,
     )
