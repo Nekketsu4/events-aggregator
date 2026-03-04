@@ -3,14 +3,18 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from src.api.v1.endpoints.events import router as event_router
-from src.schemas.schemas import HealthResponse
+from src.schemas.event_schemas import HealthResponse
+from src.worker.tasks import scheduler
+
+# Добавить логирование
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan контекст для управления состоянием приложения"""
-    # Пока что ничего не делает
+    scheduler.start()
     yield
+    scheduler.shutdown()
     # Завершаем работу
 
 
