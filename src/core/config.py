@@ -12,11 +12,6 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "events-aggregator"
     VERSION: str = "0.1.0"
 
-    # REDIS
-    REDIS_HOST: str = "localhost"
-    REDIS_PORT: int = 6379
-    REDIS_DECODE_RESPONSE: bool = True
-
     # Events Provider API
     EVENTS_PROVIDER_BASE_URL: str = "http://events-provider.dev-2.python-labs.ru"
     EVENTS_PROVIDER_API_KEY: str = ""
@@ -39,6 +34,12 @@ class Settings(BaseSettings):
     # Логирование
     # FORMAT_LOG: str = "{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}"
     # LOG_ROTATION: str = "10 MB"
+
+    # конфиги для синхронизации
+    SYNC_CHANGED_AT_DEFAULT: str = "2000-01-01"
+
+    # кэширование TTL в секундах
+    SEATS_CACHE_TTL: int = 30
 
     @model_validator(mode="after")
     def build_database_url(self):
