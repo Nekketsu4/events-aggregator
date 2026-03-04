@@ -62,7 +62,7 @@ async def list_events(
         for e in events
     ]
 
-    return events.EventListResponse(
+    return event_schemas.EventListResponse(
         count=total, next=next_url, previous=prev_url, results=results
     )
 
