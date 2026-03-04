@@ -50,15 +50,17 @@ class EventRepository:
         place_data = event_data["place"]
         place_id = uuid.UUID(place_data["id"])
 
-        place = Place(
-            id=place_id,
-            name=place_data["name"],
-            city=place_data["city"],
-            address=place_data["address"],
-            seats_pattern=place_data["seats_pattern"],
-            changed_at=datetime.fromisoformat(place_data["changed_at"]),
-            created_at=datetime.fromisoformat(place_data["created_at"]),
-        )
+        place = await self._session.get(Place, place_id)
+        if place is None:
+            place = Place(
+                id=place_id,
+                name=place_data["name"],
+                city=place_data["city"],
+                address=place_data["address"],
+                seats_pattern=place_data["seats_pattern"],
+                changed_at=datetime.fromisoformat(place_data["changed_at"]),
+                created_at=datetime.fromisoformat(place_data["created_at"]),
+            )
         self._session.add(place)
 
         event_id = uuid.UUID(event_data["id"])
