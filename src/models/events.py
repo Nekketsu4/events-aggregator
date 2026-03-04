@@ -10,7 +10,7 @@ from src.db.database import Base
 
 
 class EventStatus(str, enum.Enum):
-    new = "new"
+    new = "registration_closed"
     published = "published"
 
 
