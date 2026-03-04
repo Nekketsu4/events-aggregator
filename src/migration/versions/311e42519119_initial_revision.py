@@ -49,7 +49,7 @@ def upgrade() -> None:
         sa.Column("event_time", sa.DateTime(timezone=True), nullable=False),
         sa.Column("registration_deadline", sa.DateTime(timezone=True), nullable=False),
         sa.Column(
-            "status", sa.Enum("new", "published", name="eventstatus"), nullable=False
+            "status", sa.Enum("registration_closed", "published", name="eventstatus"), nullable=False
         ),
         sa.Column("number_of_visitors", sa.Integer(), nullable=False),
         sa.Column("changed_at", sa.DateTime(timezone=True), nullable=False),
