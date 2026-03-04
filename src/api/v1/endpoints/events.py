@@ -1,3 +1,4 @@
+import asyncio
 from datetime import date
 from uuid import UUID
 
@@ -6,12 +7,23 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.database import get_async_db_session
 from src.repository.events import EventRepository
-from src.schemas import schemas
+from src.schemas import event_schemas, sync_schemas
 
 router = APIRouter()
 
 
-@router.get("/events", response_model=schemas.EventListResponse)
+@router.post("/sync/trigger", response_model=sync_schemas.SyncTriggerResponse)
+async def trigger_sync(db: AsyncSession = Depends(get_async_db_session)):
+    """Запуск синхронизации событий API provider вручную"""
+    from src.worker.tasks import _async_sync
+
+    asyncio.create_task(_async_sync())
+    return sync_schemas.SyncTriggerResponse(
+        status="accepted", message="Задача синхронизации поставлена в очередь"
+    )
+
+
+@router.get("/events", response_model=event_schemas.EventListResponse)
 async def list_events(
     request: Request,
     date_from: date | None = Query(
@@ -38,7 +50,7 @@ async def list_events(
     prev_url = build_url(page - 1) if page > 1 else None
 
     results = [
-        schemas.EventListItem(
+        events.EventListItem(
             id=e.id,
             name=e.name,
             place=e.place,
@@ -50,30 +62,30 @@ async def list_events(
         for e in events
     ]
 
-    return schemas.EventListResponse(
+    return events.EventListResponse(
         count=total, next=next_url, previous=prev_url, results=results
     )
 
 
-@router.get("/events/{event_id}", response_model=schemas.EventDetail)
+@router.get("/events/{event_id}", response_model=event_schemas.EventDetail)
 async def get_event(event_id: UUID, db: AsyncSession = Depends(get_async_db_session)):
     repo = EventRepository(db)
-    event = await repo.get(str(event_id))
-    if event is None:
+    e = await repo.get(str(event_id))
+    if e is None:
         raise HTTPException(status_code=404, detail="Event not found")
 
-    return schemas.EventDetail(
-        id=event.id,
-        name=event.name,
-        place=schemas.PlaceDetail(
-            id=event.place.id,
-            name=event.place.name,
-            city=event.place.city,
-            address=event.place.address,
-            seats_pattern=event.place.seats_pattern,
+    return event_schemas.EventDetail(
+        id=e.id,
+        name=e.name,
+        place=event_schemas.PlaceDetail(
+            id=e.place.id,
+            name=e.place.name,
+            city=e.place.city,
+            address=e.place.address,
+            seats_pattern=e.place.seats_pattern,
         ),
-        event_time=event.event_time,
-        registration_deadline=event.registration_deadline,
-        status=event.status,
-        number_of_visitors=event.number_of_visitors,
+        event_time=e.event_time,
+        registration_deadline=e.registration_deadline,
+        status=e.status,
+        number_of_visitors=e.number_of_visitors,
     )
