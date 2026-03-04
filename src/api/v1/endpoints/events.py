@@ -50,10 +50,15 @@ async def list_events(
     prev_url = build_url(page - 1) if page > 1 else None
 
     results = [
-        events.EventListItem(
+        event_schemas.EventListItem(
             id=e.id,
             name=e.name,
-            place=e.place,
+            place=event_schemas.PlaceBase(
+                id=e.place.id,
+                name=e.place.name,
+                city=e.place.city,
+                address=e.place.address
+            ),
             event_time=e.event_time,
             registration_deadline=e.registration_deadline,
             status=e.status,
