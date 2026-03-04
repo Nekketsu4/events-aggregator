@@ -57,7 +57,7 @@ async def list_events(
                 id=e.place.id,
                 name=e.place.name,
                 city=e.place.city,
-                address=e.place.address
+                address=e.place.address,
             ),
             event_time=e.event_time,
             registration_deadline=e.registration_deadline,

@@ -44,7 +44,9 @@ class SyncService:
         synced_count = 0
 
         try:
-            async for event_data in EventsPaginator(self._client, changed_at=changed_at):
+            async for event_data in EventsPaginator(
+                self._client, changed_at=changed_at
+            ):
                 event_id = str(uuid.UUID(event_data["id"]))
                 existing = await self._event_repo.get(event_id)
                 if existing is None:

@@ -70,7 +70,7 @@ class Settings(BaseSettings):
     def _fix_scheme(url: str) -> str:
         for prefix in ("postgres://", "postgresql://"):
             if url.startswith(prefix):
-                return "postgresql+asyncpg://" + url[len(prefix):]
+                return "postgresql+asyncpg://" + url[len(prefix) :]
         return url
 
     @property
