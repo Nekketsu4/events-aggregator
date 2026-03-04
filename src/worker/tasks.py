@@ -11,7 +11,7 @@ async def sync_events_task() -> None:
     try:
         await _async_sync()
     except Exception as exc:
-        logger.exception("Запуск задачи синхронизации не удался: %s", exc)
+        logger.exception(f"Запуск задачи синхронизации не удался: {exc}")
 
 
 async def _async_sync() -> None:

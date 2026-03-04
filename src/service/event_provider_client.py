@@ -93,7 +93,7 @@ class EventsPaginator:
         while not self._buffer:
             if self._next_url is None:
                 raise StopAsyncIteration
-            logger.debug("Получаем страницу: %s", self._next_url)
+            logger.debug(f"Получаем страницу: {self._next_url}", )
             page = await self._client.events_page(self._next_url)
             self._next_url = page.get("next")
             results = page.get("results", [])

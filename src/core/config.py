@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     # Events Provider API
     EVENTS_PROVIDER_BASE_URL: str = "http://events-provider.dev-2.python-labs.ru"
-    EVENTS_PROVIDER_API_KEY: str = ""
+    EVENTS_PROVIDER_API_KEY: str = "D35vUKZmzcdejbq730bzKl-3m24YkFEwsN9kbMGWhnU"
 
     # БД локально
     POSTGRES_HOST: str = "localhost"

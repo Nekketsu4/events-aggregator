@@ -36,7 +36,7 @@ class SyncService:
         meta = await self._sync_repo.get_or_create()
         changed_at = meta.last_changed_at or settings.SYNC_CHANGED_AT_DEFAULT
 
-        logger.info("Запуск синхронизации с %s", changed_at)
+        logger.info(f"Запуск синхронизации с {changed_at}")
         await self._sync_repo.update(sync_status="running")
         await self._session.commit()
 
@@ -60,7 +60,7 @@ class SyncService:
                 # Commit in batches to avoid huge transactions
                 if synced_count % 100 == 0:
                     await self._session.commit()
-                    logger.info("Синхронизация %d событий", synced_count)
+                    logger.info(f"Синхронизация {synced_count} событий")
 
             await self._session.commit()
 
@@ -78,12 +78,12 @@ class SyncService:
             )
             await self._session.commit()
             logger.info(
-                "Sync completed successfully. Total events synced: %d", synced_count
+                f"Sync completed successfully. Total events synced: {synced_count}"
             )
 
         except EventsProviderError as exc:
             await self._session.rollback()
-            logger.exception("Ошибка синхронизации: %s", exc)
+            logger.exception(f"Ошибка синхронизации: {exc}")
             await self._sync_repo.update(
                 sync_status="failed",
                 error_message=str(exc),
