@@ -17,8 +17,8 @@ class Settings(BaseSettings):
     EVENTS_PROVIDER_API_KEY: str = "D35vUKZmzcdejbq730bzKl-3m24YkFEwsN9kbMGWhnU"
 
     # БД локально
-    POSTGRES_HOST: str = "localhost"
-    POSTGRES_PORT: int = "5432"
+    POSTGRES_HOST: str = ""
+    POSTGRES_PORT: int = 5432
     POSTGRES_USER: str = ""
     POSTGRES_DB: str = ""
     POSTGRES_PASSWORD: str = ""
@@ -70,7 +70,7 @@ class Settings(BaseSettings):
     def _fix_scheme(url: str) -> str:
         for prefix in ("postgres://", "postgresql://"):
             if url.startswith(prefix):
-                return "postgresql+asyncpg://" + url[len(prefix) :]
+                return "postgresql+asyncpg://" + url[len(prefix):]
         return url
 
     @property

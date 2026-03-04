@@ -9,9 +9,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.db.database import Base
 
 
-class EventStatus(str, enum.Enum):
-    new = "registration_closed"
-    published = "published"
+# class EventStatus(str, enum.Enum):
+#     new = "registration_closed"
+#     published = "published"
 
 
 class Place(Base):
@@ -46,7 +46,7 @@ class Event(Base):
     registration_deadline: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )
-    status: Mapped[EventStatus] = mapped_column(Enum(EventStatus), nullable=False)
+    status: Mapped[str] = mapped_column(String(50), nullable=False)
     number_of_visitors: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     changed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
