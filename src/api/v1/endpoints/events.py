@@ -186,10 +186,10 @@ async def create_ticket(
     "/tickets/{ticket_id}", response_model=ticket_schemas.CancelTicketResponse
 )
 async def cancel_ticket(
-    ticket_id: UUID, db: AsyncSession = Depends(get_async_db_session)
+    ticket_id: UUID, session: AsyncSession = Depends(get_async_db_session)
 ):
-    event_repo = EventRepository(db)
-    ticket_repo = TicketRepository(db)
+    event_repo = EventRepository(session)
+    ticket_repo = TicketRepository(session)
     usecase = CancelTicketUsecase(
         events=event_repo, tickets=ticket_repo, client=_provider_client
     )
@@ -205,5 +205,5 @@ async def cancel_ticket(
             status_code=400, detail="Cannot cancel registration for a past event"
         )
 
-    await db.commit()
+    await session.commit()
     return ticket_schemas.CancelTicketResponse(success=success)
