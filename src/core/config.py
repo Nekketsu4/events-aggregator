@@ -13,8 +13,8 @@ class Settings(BaseSettings):
     VERSION: str = "0.1.0"
 
     # Events Provider API
-    EVENTS_PROVIDER_BASE_URL: str = "http://student-system-events-provider-web.student-system-events-provider.svc:8000"
-    EVENTS_PROVIDER_API_KEY: str = "D35vUKZmzcdejbq730bzKl-3m24YkFEwsN9kbMGWhnU"
+    EVENTS_PROVIDER_BASE_URL: str = ""
+    EVENTS_PROVIDER_API_KEY: str = ""
 
     # БД локально
     POSTGRES_HOST: str = ""
