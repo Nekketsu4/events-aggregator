@@ -9,6 +9,7 @@ from src.cache.seat_cache import seats_cache
 from src.db.database import get_async_db_session
 from src.repository.events import EventRepository
 from src.schemas import event_schemas, seat_schemas, sync_schemas
+from src.service.use_cases import IEventRepository, IEventsProviderClient
 from src.service.event_provider_client import (
     EventsProviderClient,
     EventsProviderNotFoundError,
@@ -21,7 +22,7 @@ from src.service.use_cases import (
 
 router = APIRouter()
 
-_provider_client = EventsProviderClient()
+_provider_client: IEventsProviderClient = EventsProviderClient()
 
 
 @router.post("/sync/trigger", response_model=sync_schemas.SyncTriggerResponse)
@@ -116,7 +117,7 @@ async def get_seats(event_id: UUID, db: AsyncSession = Depends(get_async_db_sess
     if cached is not None:
         return seat_schemas.SeatsResponse(event_id=event_id, available_seats=cached)
 
-    repo = EventRepository(db)
+    repo: IEventRepository = EventRepository(db)
     usecase = GetSeatsUsecase(events=repo, client=_provider_client)
 
     try:
