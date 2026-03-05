@@ -55,7 +55,7 @@ jobs:
         run: |
           cat > .env << EOF
           EVENTS_PROVIDER_BASE_URL=http://student-system-events-provider-web.student-system-events-provider.svc:8000
-          EVENTS_PROVIDER_API_KEY=${{ secrets.EVENTS_PROVIDER_API_KEY }}
+          EVENTS_PROVIDER_API_KEY=${{secrets.LMS_API_KEY}}
           EOF
       - name: Build and push
         uses: docker/build-push-action@v5
