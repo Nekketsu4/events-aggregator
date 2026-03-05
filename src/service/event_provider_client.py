@@ -79,10 +79,9 @@ class EventsProviderClient:
         url = f"{self._base_url}/api/events/?changed_at={changed_at}"
         return url
 
-    def seats(self, event_id: str) -> list[str]:
-        """Return list of available seat IDs for a published event."""
+    async def seats(self, event_id: str) -> list[str]:
         url = f"{self._base_url}/api/events/{event_id}/seats/"
-        data = self._get(url)
+        data = await self._get(url)
         return data.get("seats", [])
 
 
