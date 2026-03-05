@@ -1,8 +1,8 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 from src.api.v1.endpoints.events import router as event_router
 from src.schemas.event_schemas import HealthResponse
@@ -34,6 +34,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         status_code=400,
         content={"detail": exc.errors()},
     )
+
 
 app.include_router(event_router, prefix="/api")
 
