@@ -5,11 +5,23 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.cache.seat_cache import seats_cache
 from src.db.database import get_async_db_session
 from src.repository.events import EventRepository
-from src.schemas import event_schemas, sync_schemas
+from src.schemas import event_schemas, seat_schemas, sync_schemas
+from src.service.event_provider_client import (
+    EventsProviderClient,
+    EventsProviderNotFoundError,
+)
+from src.service.use_cases import (
+    EventNotFoundError,
+    EventNotPublishedError,
+    GetSeatsUsecase,
+)
 
 router = APIRouter()
+
+_provider_client = EventsProviderClient()
 
 
 @router.post("/sync/trigger", response_model=sync_schemas.SyncTriggerResponse)
@@ -93,4 +105,30 @@ async def get_event(event_id: UUID, db: AsyncSession = Depends(get_async_db_sess
         registration_deadline=e.registration_deadline,
         status=e.status,
         number_of_visitors=e.number_of_visitors,
+    )
+
+
+@router.get("/events/{event_id}/seats", response_model=seat_schemas.SeatsResponse)
+async def get_seats(event_id: UUID, db: AsyncSession = Depends(get_async_db_session)):
+    event_id_str = str(event_id)
+
+    cached = seats_cache.get(event_id_str)
+    if cached is not None:
+        return seat_schemas.SeatsResponse(event_id=event_id, available_seats=cached)
+
+    repo = EventRepository(db)
+    usecase = GetSeatsUsecase(events=repo, client=_provider_client)
+
+    try:
+        available_seats = await usecase.do(event_id_str)
+    except EventNotFoundError:
+        raise HTTPException(status_code=404, detail="Событие не найдено")
+    except EventNotPublishedError:
+        raise HTTPException(status_code=400, detail="Событие не опубликовано")
+    except EventsProviderNotFoundError:
+        raise HTTPException(status_code=404, detail="Событие не найдено в API provider")
+
+    seats_cache.set(event_id_str, available_seats)
+    return seat_schemas.SeatsResponse(
+        event_id=event_id, available_seats=available_seats
     )
