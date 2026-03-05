@@ -8,6 +8,7 @@ from typing import Any, AsyncIterator
 
 import httpx
 from loguru import logger
+from pydantic import EmailStr
 
 from src.core.config import settings
 
@@ -52,6 +53,22 @@ class EventsProviderClient:
         self._raise_for_status(response)
         return response.json()
 
+    async def _post(self, url: str, json: dict[str, Any]) -> dict[str, Any]:
+        with httpx.AsyncClient(timeout=self._timeout) as client:
+            response = await client.post(
+                url, headers=self._headers, json=json, follow_redirects=True
+            )
+        self._raise_for_status(response)
+        return response.json()
+
+    async def _delete(self, url: str, json: dict[str, Any]) -> dict[str, Any]:
+        with httpx.AsyncClient(timeout=self._timeout) as client:
+            response = await client.request(
+                "DELETE", url, headers=self._headers, json=json, follow_redirects=True
+            )
+        self._raise_for_status(response)
+        return response.json()
+
     @staticmethod
     def _raise_for_status(response: httpx.Response) -> None:
         if response.status_code == 401:
@@ -83,6 +100,31 @@ class EventsProviderClient:
         url = f"{self._base_url}/api/events/{event_id}/seats/"
         data = await self._get(url)
         return data.get("seats", [])
+
+    async def register(
+        self,
+        event_id: str,
+        first_name: str,
+        last_name: str,
+        email: EmailStr,
+        seat: str,
+    ) -> str:
+        url = f"{self._base_url}/api/events/{event_id}/register/"
+        data = await self._post(
+            url,
+            json={
+                "first_name": first_name,
+                "last_name": last_name,
+                "email": email,
+                "seat": seat,
+            },
+        )
+        return data["ticket_id"]
+
+    async def unregister(self, event_id: str, ticket_id: str) -> bool:
+        url = f"{self._base_url}/api/events/{event_id}/unregister/"
+        data = await self._delete(url, json={"ticket_id": ticket_id})
+        return data.get("success", False)
 
 
 class EventsPaginator:
