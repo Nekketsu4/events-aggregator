@@ -54,7 +54,7 @@ class EventsProviderClient:
         return response.json()
 
     async def _post(self, url: str, json: dict[str, Any]) -> dict[str, Any]:
-        with httpx.AsyncClient(timeout=self._timeout) as client:
+        async with httpx.AsyncClient(timeout=self._timeout) as client:
             response = await client.post(
                 url, headers=self._headers, json=json, follow_redirects=True
             )
@@ -62,7 +62,7 @@ class EventsProviderClient:
         return response.json()
 
     async def _delete(self, url: str, json: dict[str, Any]) -> dict[str, Any]:
-        with httpx.AsyncClient(timeout=self._timeout) as client:
+        async with httpx.AsyncClient(timeout=self._timeout) as client:
             response = await client.request(
                 "DELETE", url, headers=self._headers, json=json, follow_redirects=True
             )
