@@ -9,7 +9,6 @@ from src.cache.seat_cache import seats_cache
 from src.db.database import get_async_db_session
 from src.repository.events import EventRepository
 from src.schemas import event_schemas, seat_schemas, sync_schemas
-from src.service.use_cases import IEventRepository, IEventsProviderClient
 from src.service.event_provider_client import (
     EventsProviderClient,
     EventsProviderNotFoundError,
@@ -18,6 +17,8 @@ from src.service.use_cases import (
     EventNotFoundError,
     EventNotPublishedError,
     GetSeatsUsecase,
+    IEventRepository,
+    IEventsProviderClient,
 )
 
 router = APIRouter()
