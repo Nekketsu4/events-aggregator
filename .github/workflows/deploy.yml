@@ -51,6 +51,12 @@ jobs:
           tags: |
             type=ref,event=branch
             type=sha,prefix={{branch}}-
+      - name: Create .env file
+        run: |
+          cat > .env << EOF
+          EVENTS_PROVIDER_BASE_URL=http://student-system-events-provider-web.student-system-events-provider.svc:8000
+          EVENTS_PROVIDER_API_KEY=${{ secrets.EVENTS_PROVIDER_API_KEY }}
+          EOF
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
