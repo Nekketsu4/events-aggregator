@@ -106,7 +106,7 @@ class CreateTicketUsecase:
             raise RegistrationDeadlinePassedError("Registration deadline has passed")
 
         # Validate seat availability before hitting the provider
-        available_seats = self._client.seats(event_id)
+        available_seats = await self._client.seats(event_id)
         if seat not in available_seats:
             raise SeatUnavailableError(f"Seat {seat} is not available")
 
