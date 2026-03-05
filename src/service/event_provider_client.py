@@ -65,10 +65,10 @@ class EventsProviderClient:
                 detail = response.text
             if "already sold" in str(detail):
                 raise EventsProviderSeatUnavailableError(str(detail))
-            raise EventsProviderError(f"Некорректный запрос: {detail}")
+            raise EventsProviderError(f"Bad request: {detail}")
         if response.status_code >= 500:
             raise EventsProviderError(
-                f"Ошибка сервера {response.status_code}: {response.text[:200]}"
+                f"Server error {response.status_code}: {response.text[:200]}"
             )
         response.raise_for_status()
 
@@ -78,6 +78,12 @@ class EventsProviderClient:
     def first_events_url(self, changed_at: str) -> str:
         url = f"{self._base_url}/api/events/?changed_at={changed_at}"
         return url
+
+    def seats(self, event_id: str) -> list[str]:
+        """Return list of available seat IDs for a published event."""
+        url = f"{self._base_url}/api/events/{event_id}/seats/"
+        data = self._get(url)
+        return data.get("seats", [])
 
 
 class EventsPaginator:
