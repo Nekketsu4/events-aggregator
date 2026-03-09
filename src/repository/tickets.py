@@ -1,3 +1,4 @@
+import typing
 import uuid
 from datetime import datetime, timezone
 
@@ -8,7 +9,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.events import Ticket
 
 
-class TicketRepository:
+class ITicketRepository(typing.Protocol):
+    async def get(self, ticket_id: str | uuid.UUID): ...
+    async def create(
+        self,
+        ticket_id: str,
+        event_id: str,
+        first_name: str,
+        last_name: str,
+        email: EmailStr,
+        seat: str,
+    ): ...
+    async def delete(self, ticket_id: str | uuid.UUID) -> None: ...
+
+
+class TicketRepository(ITicketRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
