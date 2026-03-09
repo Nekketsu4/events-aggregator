@@ -7,13 +7,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.cache.seat_cache import seats_cache
 from src.db.database import get_async_db_session
-from src.repository.events import EventRepository
-from src.repository.tickets import TicketRepository
+from src.repository.events import EventRepository, IEventRepository
+from src.repository.tickets import ITicketRepository, TicketRepository
 from src.schemas import event_schemas, seat_schemas, sync_schemas, ticket_schemas
 from src.service.event_provider_client import (
-    EventsProviderClient,
     EventsProviderNotFoundError,
     EventsProviderSeatUnavailableError,
+    IEventsProviderClient,
+    provider_client,
 )
 from src.service.use_cases import (
     CancelTicketUsecase,
@@ -22,7 +23,6 @@ from src.service.use_cases import (
     EventNotFoundError,
     EventNotPublishedError,
     GetSeatsUsecase,
-    IEventsProviderClient,
     RegistrationDeadlinePassedError,
     SeatUnavailableError,
     TicketNotFoundError,
@@ -30,15 +30,13 @@ from src.service.use_cases import (
 
 router = APIRouter()
 
-_provider_client: IEventsProviderClient = EventsProviderClient()
-
 
 @router.post("/sync/trigger", response_model=sync_schemas.SyncTriggerResponse)
-async def trigger_sync(session: AsyncSession = Depends(get_async_db_session)):
+async def trigger_sync():
     """Запуск синхронизации событий API provider вручную"""
-    from src.worker.tasks import _async_sync
+    from src.worker.tasks import async_sync
 
-    asyncio.create_task(_async_sync())
+    asyncio.create_task(async_sync())
     return sync_schemas.SyncTriggerResponse(
         status="accepted", message="Задача синхронизации поставлена в очередь"
     )
@@ -54,7 +52,7 @@ async def list_events(
     page_size: int = Query(20, ge=1, le=100),
     session: AsyncSession = Depends(get_async_db_session),
 ):
-    repo = EventRepository(session)
+    repo: IEventRepository = EventRepository(session)
     total, events = await repo.list_events(
         date_from=date_from, page=page, page_size=page_size
     )
@@ -97,12 +95,12 @@ async def list_events(
 async def get_event(
     event_id: UUID, session: AsyncSession = Depends(get_async_db_session)
 ):
-    repo = EventRepository(session)
+    repo: IEventRepository = EventRepository(session)
     e = await repo.get(str(event_id))
     if e is None:
         raise HTTPException(status_code=404, detail="Event not found")
 
-    return event_schemas.EventDetail(
+    return event_schemas.EventListItem(
         id=e.id,
         name=e.name,
         place=event_schemas.PlaceDetail(
@@ -121,7 +119,11 @@ async def get_event(
 
 @router.get("/events/{event_id}/seats", response_model=seat_schemas.SeatsResponse)
 async def get_seats(
-    event_id: UUID, session: AsyncSession = Depends(get_async_db_session)
+    event_id: UUID,
+    session: AsyncSession = Depends(get_async_db_session),
+    client: IEventsProviderClient = Depends(
+        provider_client
+    ),  # исправить, добавить IEventsProviderClient
 ):
     event_id_str = str(event_id)
 
@@ -129,8 +131,8 @@ async def get_seats(
     if cached is not None:
         return seat_schemas.SeatsResponse(event_id=event_id, available_seats=cached)
 
-    repo = EventRepository(session)
-    usecase = GetSeatsUsecase(events=repo, client=_provider_client)
+    repo: IEventRepository = EventRepository(session)
+    usecase = GetSeatsUsecase(events=repo, client=client)
 
     try:
         available_seats = await usecase.do(event_id_str)
@@ -153,12 +155,11 @@ async def get_seats(
 async def create_ticket(
     body: ticket_schemas.CreateTicketRequest,
     session: AsyncSession = Depends(get_async_db_session),
+    client=Depends(provider_client),  # исправить, добавить IEventsProviderClient
 ):
-    event_repo = EventRepository(session)
-    ticket_repo = TicketRepository(session)
-    usecase = CreateTicketUsecase(
-        events=event_repo, tickets=ticket_repo, client=_provider_client
-    )
+    event_repo: IEventRepository = EventRepository(session)
+    ticket_repo: ITicketRepository = TicketRepository(session)
+    usecase = CreateTicketUsecase(events=event_repo, tickets=ticket_repo, client=client)
     try:
         ticket_id = await usecase.do(
             event_id=str(body.event_id),
@@ -186,13 +187,13 @@ async def create_ticket(
     "/tickets/{ticket_id}", response_model=ticket_schemas.CancelTicketResponse
 )
 async def cancel_ticket(
-    ticket_id: UUID, session: AsyncSession = Depends(get_async_db_session)
+    ticket_id: UUID,
+    session: AsyncSession = Depends(get_async_db_session),
+    client=Depends(provider_client),  # исправить, добавить IEventsProviderClient
 ):
-    event_repo = EventRepository(session)
-    ticket_repo = TicketRepository(session)
-    usecase = CancelTicketUsecase(
-        events=event_repo, tickets=ticket_repo, client=_provider_client
-    )
+    event_repo: IEventRepository = EventRepository(session)
+    ticket_repo: ITicketRepository = TicketRepository(session)
+    usecase = CancelTicketUsecase(events=event_repo, tickets=ticket_repo, client=client)
 
     try:
         success = await usecase.do(str(ticket_id))
