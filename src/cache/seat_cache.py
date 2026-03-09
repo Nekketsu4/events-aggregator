@@ -1,5 +1,5 @@
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass
@@ -13,7 +13,6 @@ class SeatsCache:
 
     def __init__(self, ttl: int = 30) -> None:
         self._ttl = ttl
-        self._store: dict[str, _CacheEntry] = field(default_factory=dict)  # type: ignore[assignment]
         self._store = {}
 
     def get(self, event_id: str) -> list[str] | None:
