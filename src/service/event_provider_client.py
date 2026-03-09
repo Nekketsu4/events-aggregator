@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import typing
 from typing import Any, AsyncIterator
 
 import httpx
@@ -30,6 +31,14 @@ class EventsProviderNotFoundError(EventsProviderError):
 
 class EventsProviderSeatUnavailableError(EventsProviderError):
     """Место уже занято 400"""
+
+
+class IEventsProviderClient(typing.Protocol):
+    async def register(
+        self, event_id: str, first_name: str, last_name: str, email: EmailStr, seat: str
+    ) -> str: ...
+    async def unregister(self, event_id: str, ticket_id: str) -> bool: ...
+    async def seats(self, event_id: str) -> list[str]: ...
 
 
 class EventsProviderClient:
@@ -82,10 +91,10 @@ class EventsProviderClient:
                 detail = response.text
             if "already sold" in str(detail):
                 raise EventsProviderSeatUnavailableError(str(detail))
-            raise EventsProviderError(f"Bad request: {detail}")
+            raise EventsProviderError(f"Не корректный запрос: {detail}")
         if response.status_code >= 500:
             raise EventsProviderError(
-                f"Server error {response.status_code}: {response.text[:200]}"
+                f"Ошибкру внутри сервера {response.status_code}: {response.text[:200]}"
             )
         response.raise_for_status()
 
@@ -151,3 +160,6 @@ class EventsPaginator:
             self._buffer.extend(results)
 
         return self._buffer.pop(0)
+
+
+provider_client = EventsProviderClient
