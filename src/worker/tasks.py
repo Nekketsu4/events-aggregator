@@ -9,12 +9,12 @@ async def sync_events_task() -> None:
     """Фоновая синхронизация событий API provider в 2 часа ночи"""
     logger.info("Запускаем задачу синхронизации событий")
     try:
-        await _async_sync()
+        await async_sync()
     except Exception as exc:
         logger.exception(f"Запуск задачи синхронизации не удался: {exc}")
 
 
-async def _async_sync() -> None:
+async def async_sync() -> None:
     from src.db.database import AsyncSessionLocal
     from src.service.event_provider_client import EventsProviderClient
     from src.service.sync_service import SyncService
