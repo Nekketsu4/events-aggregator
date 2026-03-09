@@ -19,6 +19,12 @@ class PlaceDetail(PlaceBase):
     seats_pattern: str
 
 
+class PlaceDetailChangeCreate(PlaceDetail):
+    changed_at: datetime
+    created_at: datetime
+
+
+# убрать, идентичен  EventDetail
 class EventListItem(BaseModel):
     id: UUID
     name: str
@@ -34,11 +40,14 @@ class EventListItem(BaseModel):
 class EventDetail(BaseModel):
     id: UUID
     name: str
-    place: PlaceDetail
+    place: PlaceDetailChangeCreate
     event_time: datetime
     registration_deadline: datetime
     status: str
     number_of_visitors: int
+    changed_at: datetime
+    created_at: datetime
+    status_changed_at: datetime
 
     model_config = {"from_attributes": True}
 
