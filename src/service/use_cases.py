@@ -1,40 +1,13 @@
 from __future__ import annotations
 
-import typing
 from datetime import datetime, timezone
-from uuid import UUID
 
 from loguru import logger
 from pydantic import EmailStr
 
-
-class IEventRepository(typing.Protocol):
-    async def get(self, event_id: str | UUID): ...
-    async def list_events(self, date_from, page: int, page_size: int): ...
-    async def insert(self, event_data: dict) -> None: ...
-    async def update(self, event_data: dict) -> None: ...
-
-
-class ITicketRepository(typing.Protocol):
-    async def get(self, ticket_id: str | UUID): ...
-    async def create(
-        self,
-        ticket_id: str,
-        event_id: str,
-        first_name: str,
-        last_name: str,
-        email: EmailStr,
-        seat: str,
-    ): ...
-    async def delete(self, ticket_id: str | UUID) -> None: ...
-
-
-class IEventsProviderClient(typing.Protocol):
-    async def register(
-        self, event_id: str, first_name: str, last_name: str, email: EmailStr, seat: str
-    ) -> str: ...
-    async def unregister(self, event_id: str, ticket_id: str) -> bool: ...
-    async def seats(self, event_id: str) -> list[str]: ...
+from src.repository.events import IEventRepository
+from src.repository.tickets import ITicketRepository
+from src.service.event_provider_client import IEventsProviderClient
 
 
 class EventNotFoundError(Exception):
@@ -127,7 +100,9 @@ class CreateTicketUsecase:
             seat=seat,
         )
 
-        logger.info("Ticket %s created for event %s seat %s", ticket_id, event_id, seat)
+        logger.info(
+            f"Билет> {ticket_id} создан для события {event_id}, ваше место {seat}"
+        )
         return ticket_id
 
 
@@ -145,15 +120,17 @@ class CancelTicketUsecase:
     async def do(self, ticket_id: str) -> bool:
         ticket = await self._tickets.get(ticket_id)
         if ticket is None:
-            raise TicketNotFoundError(f"Ticket {ticket_id} not found")
+            raise TicketNotFoundError(f"Билет {ticket_id} не найден")
 
         event = await self._events.get(str(ticket.event_id))
         if event is None:
-            raise EventNotFoundError(f"Event {ticket.event_id} not found")
+            raise EventNotFoundError(f"Событие {ticket.event_id} не найдено")
 
         now = datetime.now(tz=timezone.utc)
         if now > event.event_time:
-            raise EventAlreadyPassedError("Cannot cancel registration for a past event")
+            raise EventAlreadyPassedError(
+                "Невозможно отменить событие на прошедшее событие"
+            )
 
         success = await self._client.unregister(
             event_id=str(ticket.event_id),
@@ -162,5 +139,5 @@ class CancelTicketUsecase:
         if success:
             await self._tickets.delete(ticket_id)
 
-        logger.info("Ticket %s cancelled for event %s", ticket_id, ticket.event_id)
+        logger.info(f"Отменен билет {ticket_id} для события {ticket.event_id}")
         return success
