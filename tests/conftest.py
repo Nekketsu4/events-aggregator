@@ -25,6 +25,7 @@ def client():
 
 
 def _make_response(status_code: int, json_data=None, text: str = "") -> MagicMock:
+    """Вспомогательная функция для подделки HTTP ответов"""
     resp = MagicMock()
     resp.status_code = status_code
     resp.text = text
