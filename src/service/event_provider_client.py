@@ -4,7 +4,6 @@
 
 from __future__ import annotations
 
-import typing
 from typing import Any, AsyncIterator
 
 import httpx
@@ -13,14 +12,6 @@ from pydantic import EmailStr
 
 from src.core.config import settings
 from src.exceptions.provider_client_exc import raise_for_status
-
-
-class IEventsProviderClient(typing.Protocol):
-    async def register(
-        self, event_id: str, first_name: str, last_name: str, email: EmailStr, seat: str
-    ) -> str: ...
-    async def unregister(self, event_id: str, ticket_id: str) -> bool: ...
-    async def seats(self, event_id: str) -> list[str]: ...
 
 
 class EventsProviderClient:
@@ -141,3 +132,8 @@ class EventsPaginator:
 
 
 provider_client = EventsProviderClient()
+
+
+def get_provider_client() -> EventsProviderClient:
+    """Возвращает единственный экземпляр клиента. Используется как FastAPI зависимость."""
+    return provider_client
