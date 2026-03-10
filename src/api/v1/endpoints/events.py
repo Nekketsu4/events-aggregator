@@ -66,7 +66,7 @@ async def list_events(
     )
 
 
-@router.get("/events/{event_id}", response_model=event_schemas.EventDetail)
+@router.get("/events/{event_id}", response_model=event_schemas.EventListItem)
 async def get_event(
     event_id: UUID, session: AsyncSession = Depends(get_async_db_session)
 ):

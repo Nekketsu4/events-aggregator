@@ -82,7 +82,7 @@ class EventRepository(IEventRepository):
             event_time=event_data.event_time,
             registration_deadline=event_data.registration_deadline,
             status=event_data.status,
-            number_of_visitors=getattr(EventDetail, "number_of_visitors", 0),
+            number_of_visitors=event_data.number_of_visitors,
             changed_at=event_data.changed_at,
             created_at=event_data.created_at,
             status_changed_at=event_data.status_changed_at,
@@ -112,7 +112,7 @@ class EventRepository(IEventRepository):
             event.event_time = event_data.event_time
             event.registration_deadline = event_data.registration_deadline
             event.status = event_data.status
-            event.number_of_visitors = getattr(EventDetail, "number_of_visitors", 0)
+            event.number_of_visitors = event_data.number_of_visitors
             event.changed_at = event_data.changed_at
             event.created_at = event_data.created_at
             event.status_changed_at = event_data.status_changed_at
