@@ -7,12 +7,12 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import settings
+from src.exceptions.provider_client_exc import EventsProviderError
 from src.repository.events import EventRepository
 from src.repository.sync_metadata import SyncMetadataRepository
 from src.service.event_provider_client import (
     EventsPaginator,
     EventsProviderClient,
-    EventsProviderError,
 )
 
 
@@ -80,7 +80,7 @@ class SyncService:
             )
             await self._session.commit()
             logger.info(
-                f"Sync completed successfully. Total events synced: {synced_count}"
+                f"Синхронизация выполнена успешно. Синхронизаций выполнено: {synced_count}"
             )
 
         except EventsProviderError as exc:
