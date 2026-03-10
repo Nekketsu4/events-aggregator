@@ -10,6 +10,7 @@ from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
 from src.api.v1.endpoints.events import router
+from src.cache.seat_cache import SeatsCache
 from src.db.database import get_async_db_session
 from src.service.event_provider_client import (
     EventsProviderClient,
@@ -53,3 +54,9 @@ async def async_client(app):
         transport=ASGITransport(app=app), base_url="http://test"
     ) as ac:
         yield ac
+
+
+@pytest.fixture
+def cache() -> SeatsCache:
+    """Возвращает экземпляр SeatsCache с TTL 30 секунд для тестов."""
+    return SeatsCache(ttl=30)
