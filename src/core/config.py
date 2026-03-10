@@ -1,6 +1,8 @@
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from src.utils.utils import fix_scheme
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -8,7 +10,6 @@ class Settings(BaseSettings):
     )
 
     # Настройки приложения
-    # DEBUG: bool
     PROJECT_NAME: str = "events-aggregator"
     VERSION: str = "0.1.0"
 
@@ -31,10 +32,6 @@ class Settings(BaseSettings):
     # Database_url
     DATABASE_URL: str = ""
 
-    # Логирование
-    # FORMAT_LOG: str = "{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}"
-    # LOG_ROTATION: str = "10 MB"
-
     # конфиги для синхронизации
     SYNC_CHANGED_AT_DEFAULT: str = "2000-01-01"
 
@@ -44,11 +41,11 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def build_database_url(self):
         if self.DATABASE_URL:
-            self.DATABASE_URL = self._fix_scheme(self.DATABASE_URL)
+            self.DATABASE_URL = fix_scheme(self.DATABASE_URL)
             return self
 
         if self.POSTGRES_CONNECTION_STRING:
-            self.DATABASE_URL = self._fix_scheme(self.POSTGRES_CONNECTION_STRING)
+            self.DATABASE_URL = fix_scheme(self.POSTGRES_CONNECTION_STRING)
             return self
 
         user = self.POSTGRES_USERNAME or self.POSTGRES_USER
@@ -66,28 +63,9 @@ class Settings(BaseSettings):
         self.DATABASE_URL = "postgresql+asyncpg://admin:admin@db:5432/aggregator_db"
         return self
 
-    @staticmethod
-    def _fix_scheme(url: str) -> str:
-        for prefix in ("postgres://", "postgresql://"):
-            if url.startswith(prefix):
-                return "postgresql+asyncpg://" + url[len(prefix) :]
-        return url
-
     @property
     def get_db(self) -> str:
         return self.DATABASE_URL
 
 
 settings = Settings()
-
-
-# # Настройка логирования
-# log_file_path = os.path.join(
-#     os.path.dirname(os.path.abspath(__file__)), "..", "logs", "log.txt"
-# )
-# logger.add(
-#     log_file_path,
-#     format=settings.FORMAT_LOG,
-#     level="INFO",
-#     rotation=settings.LOG_ROTATION,
-# )
