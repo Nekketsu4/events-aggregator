@@ -5,33 +5,17 @@ from datetime import datetime, timezone
 from loguru import logger
 from pydantic import EmailStr
 
+from src.exceptions.event_exc import (
+    EventAlreadyPassedError,
+    EventNotFoundError,
+    EventNotPublishedError,
+    RegistrationDeadlinePassedError,
+    SeatUnavailableError,
+    TicketNotFoundError,
+)
 from src.repository.events import IEventRepository
 from src.repository.tickets import ITicketRepository
 from src.service.event_provider_client import IEventsProviderClient
-
-
-class EventNotFoundError(Exception):
-    pass
-
-
-class EventNotPublishedError(Exception):
-    pass
-
-
-class RegistrationDeadlinePassedError(Exception):
-    pass
-
-
-class SeatUnavailableError(Exception):
-    pass
-
-
-class TicketNotFoundError(Exception):
-    pass
-
-
-class EventAlreadyPassedError(Exception):
-    pass
 
 
 class GetSeatsUsecase:
