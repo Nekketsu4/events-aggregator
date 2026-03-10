@@ -102,6 +102,10 @@ class EventsProviderClient:
         data = await self._delete(url, json={"ticket_id": ticket_id})
         return data.get("success", False)
 
+    async def close(self) -> None:
+        """Закрывает HTTP-соединение. Вызывать при завершении приложения."""
+        await self._http.aclose()
+
 
 class EventsPaginator:
     """Асинхронный итератор для обхода всех страниц событий."""
@@ -136,4 +140,4 @@ class EventsPaginator:
         return self._buffer.pop(0)
 
 
-provider_client = EventsProviderClient
+provider_client = EventsProviderClient()

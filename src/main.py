@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 
 from src.api.v1.endpoints.events import router as event_router
 from src.schemas.event_schemas import HealthResponse
+from src.service.event_provider_client import provider_client
 from src.worker.tasks import scheduler
 
 
@@ -15,6 +16,7 @@ async def lifespan(app: FastAPI):
     scheduler.start()
     yield
     scheduler.shutdown()
+    await provider_client.close()
 
 
 app = FastAPI(
