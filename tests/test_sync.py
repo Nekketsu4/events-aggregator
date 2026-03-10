@@ -6,7 +6,7 @@ import pytest
 @pytest.mark.asyncio
 async def test_returns_success_response(async_client):
     """Заглушка иммитирует запуск синхронизации фоном и получаем ответ"""
-    with patch("src.worker.tasks.async_sync", return_value=None):
+    with patch("src.worker.tasks.launch_sync", return_value=None):
         # coro.close() - закрываем выполнение корутины во избежание ошибок
         with patch("asyncio.create_task", side_effect=lambda coro: coro.close()):
             response = await async_client.post("/api/sync/trigger")
@@ -19,7 +19,7 @@ async def test_returns_success_response(async_client):
 @pytest.mark.asyncio
 async def test_create_task_called_once(async_client):
     """Проверяем что фоновая задача была вызвана только один раз когда дернули ручку"""
-    with patch("src.worker.tasks.async_sync", return_value=None):
+    with patch("src.worker.tasks.launch_sync", return_value=None):
         with patch(
             "asyncio.create_task", side_effect=lambda coro: coro.close()
         ) as mock_create_task:
@@ -33,7 +33,7 @@ async def test_create_task_called_once(async_client):
 @pytest.mark.asyncio
 async def test_returns_200_even_if_sync_fails(async_client):
     """Endpoint должен вернуть 200 даже если синхронизация упадёт в фоне"""
-    with patch("src.worker.tasks.async_sync", return_value=None):
+    with patch("src.worker.tasks.launch_sync", return_value=None):
         with patch("asyncio.create_task", side_effect=lambda coro: coro.close()):
             response = await async_client.post("/api/sync/trigger")
 
