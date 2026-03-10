@@ -61,18 +61,17 @@ class SyncService:
                 if max_changed_at is None or event_changed > max_changed_at:
                     max_changed_at = event_changed
 
-                # Commit in batches to avoid huge transactions
+                # чтобы не было огромных транзакций, подсчитываем количество полученных элементов
+                # если оно достигает 100, выполняем коммит
                 if synced_count % 100 == 0:
                     await self._session.commit()
                     logger.info(f"Синхронизация {synced_count} событий")
 
             await self._session.commit()
 
-            # Persist the max changed_at date for the next incremental sync.
-            # We store only the date portion to use as changed_at query param.
             next_changed_at = changed_at
             if max_changed_at:
-                next_changed_at = max_changed_at[:10]  # "YYYY-MM-DD"
+                next_changed_at = max_changed_at[:10]
 
             await self._sync_repo.update(
                 sync_status="success",

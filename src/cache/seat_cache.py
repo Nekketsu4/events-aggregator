@@ -11,7 +11,10 @@ class _CacheEntry:
 
 
 class SeatsCache:
-    """Simple in-memory cache with TTL for available seats."""
+    """
+    Кэширование мест с помощью in-memory
+    и установка времени жизни кэша
+    """
 
     def __init__(self, ttl: int = 30) -> None:
         self._ttl = ttl
