@@ -1,4 +1,3 @@
-import typing
 import uuid
 from datetime import date, datetime, timezone
 
@@ -8,15 +7,7 @@ from sqlalchemy.orm import selectinload
 
 from src.models.events import Event, Place
 from src.schemas.event_schemas import EventDetail
-
-
-class IEventRepository(typing.Protocol):
-    async def get(self, event_id: str | uuid.UUID): ...
-    async def list_events(
-        self, date_from, page: int, page_size: int
-    ) -> tuple[int, list[Event]]: ...
-    async def insert(self, event_data: EventDetail) -> None: ...
-    async def update(self, event_data: EventDetail) -> None: ...
+from src.service.use_cases import IEventRepository
 
 
 class EventRepository(IEventRepository):

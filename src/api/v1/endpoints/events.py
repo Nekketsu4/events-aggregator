@@ -32,7 +32,6 @@ router = APIRouter()
 @router.post("/sync/trigger", response_model=sync_schemas.SyncTriggerResponse)
 async def trigger_sync():
     """Запуск синхронизации событий API provider вручную"""
-
     asyncio.create_task(launch_sync())
     return sync_schemas.SyncTriggerResponse(
         status="accepted", message="Задача синхронизации поставлена в очередь"

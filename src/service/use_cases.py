@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import typing
+import uuid
 from datetime import datetime, timezone
 
 from loguru import logger
@@ -14,8 +15,8 @@ from src.exceptions.event_exc import (
     SeatUnavailableError,
     TicketNotFoundError,
 )
-from src.repository.events import IEventRepository
-from src.repository.tickets import ITicketRepository
+from src.models.events import Event
+from src.schemas.event_schemas import EventDetail
 
 
 class IEventsProviderClient(typing.Protocol):
@@ -26,7 +27,36 @@ class IEventsProviderClient(typing.Protocol):
     async def seats(self, event_id: str) -> list[str]: ...
 
 
+class IEventRepository(typing.Protocol):
+    async def get(self, event_id: str | uuid.UUID): ...
+    async def list_events(
+        self, date_from, page: int, page_size: int
+    ) -> tuple[int, list[Event]]: ...
+    async def insert(self, event_data: EventDetail) -> None: ...
+    async def update(self, event_data: EventDetail) -> None: ...
+
+
+class ITicketRepository(typing.Protocol):
+    async def get(self, ticket_id: str | uuid.UUID): ...
+    async def create(
+        self,
+        ticket_id: str,
+        event_id: str,
+        first_name: str,
+        last_name: str,
+        email: EmailStr,
+        seat: str,
+    ): ...
+    async def delete(self, ticket_id: str | uuid.UUID) -> None: ...
+
+
 class GetSeatsUsecase:
+    """
+    Возвращает список свободных мест.
+    Проверяет существование события и его статус (должен быть "published"),
+    затем запрашивает места у провайдера.
+    """
+
     def __init__(self, events: IEventRepository, client: IEventsProviderClient) -> None:
         self._events = events
         self._client = client
@@ -41,6 +71,12 @@ class GetSeatsUsecase:
 
 
 class CreateTicketUsecase:
+    """
+    Ищем событие, проверяем дедлайн события,
+    проверяем доступно ли место,
+    делаем регистрацию и сохраняем билет в БД.
+    """
+
     def __init__(
         self,
         events: IEventRepository,
@@ -61,19 +97,19 @@ class CreateTicketUsecase:
     ) -> str:
         event = await self._events.get(event_id)
         if event is None:
-            raise EventNotFoundError(f"Event {event_id} not found")
+            raise EventNotFoundError(f"Событие {event_id} не найдено")
 
         if event.status != "published":
-            raise EventNotPublishedError(f"Event {event_id} is not published")
+            raise EventNotPublishedError(f"Событие {event_id} не опубликовано")
 
         now = datetime.now(tz=timezone.utc)
         if now > event.registration_deadline:
-            raise RegistrationDeadlinePassedError("Registration deadline has passed")
+            raise RegistrationDeadlinePassedError("Срок регистрации уже прошел")
 
-        # Validate seat availability before hitting the provider
+        # Делаем проверку доступно ли место или нет
         available_seats = await self._client.seats(event_id)
         if seat not in available_seats:
-            raise SeatUnavailableError(f"Seat {seat} is not available")
+            raise SeatUnavailableError(f"Место {seat} не доступно")
 
         ticket_id = await self._client.register(
             event_id=event_id,
@@ -99,6 +135,12 @@ class CreateTicketUsecase:
 
 
 class CancelTicketUsecase:
+    """
+    Отмена билета. Ищем билет и событие в БД,
+    проверяем что событие ещё не прошло,вызываем unregister у провайдера
+    для удаления билета из БД.
+    """
+
     def __init__(
         self,
         events: IEventRepository,
