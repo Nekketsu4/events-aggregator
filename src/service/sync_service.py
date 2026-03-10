@@ -10,6 +10,7 @@ from src.core.config import settings
 from src.exceptions.provider_client_exc import EventsProviderError
 from src.repository.events import EventRepository
 from src.repository.sync_metadata import SyncMetadataRepository
+from src.schemas.event_schemas import EventDetail
 from src.service.event_provider_client import (
     EventsPaginator,
     EventsProviderClient,
@@ -48,11 +49,12 @@ class SyncService:
                 self._client, changed_at=changed_at
             ):
                 event_id = str(uuid.UUID(event_data["id"]))
+                parsed_data = EventDetail.model_validate(event_data)
                 existing = await self._event_repo.get(event_id)
                 if existing is None:
-                    await self._event_repo.insert(event_data)
+                    await self._event_repo.insert(parsed_data)
                 else:
-                    await self._event_repo.update(event_data)
+                    await self._event_repo.update(parsed_data)
                 synced_count += 1
 
                 event_changed = event_data.get("changed_at", "")
