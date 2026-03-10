@@ -12,25 +12,7 @@ from loguru import logger
 from pydantic import EmailStr
 
 from src.core.config import settings
-
-
-class EventsProviderError(Exception):
-    """Родительский класс для event provider ошибок"""
-
-
-class EventsProviderAuthError(EventsProviderError):
-    """
-    Не авторизован 401, то есть отсутствует
-     или предоставлен не верный API key
-    """
-
-
-class EventsProviderNotFoundError(EventsProviderError):
-    """Не найден 404"""
-
-
-class EventsProviderSeatUnavailableError(EventsProviderError):
-    """Место уже занято 400"""
+from src.exceptions.provider_client_exc import raise_for_status
 
 
 class IEventsProviderClient(typing.Protocol):
@@ -50,62 +32,45 @@ class EventsProviderClient:
         api_key: str = settings.EVENTS_PROVIDER_API_KEY,
         timeout: float = 30.0,
     ) -> None:
+        """
+        Инициализирует клиент и создаёт переиспользуемый httpx.AsyncClient.
+        base_url: Базовый URL Events Provider API.
+        api_key: Ключ аутентификации для заголовка x-api-key.
+        timeout: Таймаут HTTP-запросов в секундах.
+        """
         self._base_url = base_url.rstrip("/")
-        self._headers = {"x-api-key": api_key}
-        self._timeout = timeout
+        self._http = httpx.AsyncClient(
+            headers={"x-api-key": api_key},
+            timeout=timeout,
+            follow_redirects=True,
+        )
 
     async def _get(self, url: str) -> dict[str, Any]:
-        async with httpx.AsyncClient(timeout=self._timeout) as client:
-            response = await client.get(
-                url, headers=self._headers, follow_redirects=True
-            )
-        self._raise_for_status(response)
+        response = await self._http.get(url)
+        raise_for_status(response)
         return response.json()
 
     async def _post(self, url: str, json: dict[str, Any]) -> dict[str, Any]:
-        async with httpx.AsyncClient(timeout=self._timeout) as client:
-            response = await client.post(
-                url, headers=self._headers, json=json, follow_redirects=True
-            )
-        self._raise_for_status(response)
+        response = await self._http.post(url, json=json)
+        raise_for_status(response)
         return response.json()
 
     async def _delete(self, url: str, json: dict[str, Any]) -> dict[str, Any]:
-        async with httpx.AsyncClient(timeout=self._timeout) as client:
-            response = await client.request(
-                "DELETE", url, headers=self._headers, json=json, follow_redirects=True
-            )
-        self._raise_for_status(response)
+        response = await self._http.request("DELETE", url, json=json)
+        raise_for_status(response)
         return response.json()
 
-    @staticmethod
-    def _raise_for_status(response: httpx.Response) -> None:
-        if response.status_code == 401:
-            raise EventsProviderAuthError("Отсутствует либо неверный API key")
-        if response.status_code == 404:
-            raise EventsProviderNotFoundError("Данные не найдены")
-        if response.status_code == 400:
-            try:
-                detail = response.json()
-            except Exception:
-                detail = response.text
-            if "already sold" in str(detail):
-                raise EventsProviderSeatUnavailableError(str(detail))
-            raise EventsProviderError(f"Не корректный запрос: {detail}")
-        if response.status_code >= 500:
-            raise EventsProviderError(
-                f"Ошибкру внутри сервера {response.status_code}: {response.text[:200]}"
-            )
-        response.raise_for_status()
-
     async def events_page(self, url: str) -> dict[str, Any]:
+        """Получает одну страницу событий по заданному URL."""
         return await self._get(url)
 
     def first_events_url(self, changed_at: str) -> str:
+        """Формирует URL первой страницы запроса событий с фильтром по дате изменения."""
         url = f"{self._base_url}/api/events/?changed_at={changed_at}"
         return url
 
     async def seats(self, event_id: str) -> list[str]:
+        """Получает список свободных мест для указанного события."""
         url = f"{self._base_url}/api/events/{event_id}/seats/"
         data = await self._get(url)
         return data.get("seats", [])
@@ -118,6 +83,7 @@ class EventsProviderClient:
         email: EmailStr,
         seat: str,
     ) -> str:
+        """Регистрирует участника на событие."""
         url = f"{self._base_url}/api/events/{event_id}/register/"
         data = await self._post(
             url,
@@ -131,12 +97,15 @@ class EventsProviderClient:
         return data["ticket_id"]
 
     async def unregister(self, event_id: str, ticket_id: str) -> bool:
+        """Отменяет регистрацию участника на мероприятие."""
         url = f"{self._base_url}/api/events/{event_id}/unregister/"
         data = await self._delete(url, json={"ticket_id": ticket_id})
         return data.get("success", False)
 
 
 class EventsPaginator:
+    """Асинхронный итератор для обхода всех страниц событий."""
+
     def __init__(self, client: EventsProviderClient, changed_at: str) -> None:
         self._client = client
         self._next_url: str | None = client.first_events_url(changed_at)
@@ -146,6 +115,11 @@ class EventsPaginator:
         return self
 
     async def __anext__(self) -> dict[str, Any]:
+        """
+        Возвращает следующее событие, подгружая страницы по мере необходимости.
+        Returns: Словарь с данными одного события.
+        Raises: StopAsyncIteration: Когда все страницы пройдены.
+        """
         while not self._buffer:
             if self._next_url is None:
                 raise StopAsyncIteration
