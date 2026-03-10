@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from loguru import logger
 
 from src.api.v1.endpoints.events import router as event_router
 from src.schemas.event_schemas import HealthResponse
@@ -13,10 +14,20 @@ from src.worker.tasks import scheduler
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan контекст: запускает и останавливает планировщик фоновых задач."""
-    scheduler.start()
-    yield
-    scheduler.shutdown()
-    await provider_client.close()
+    try:
+        scheduler.start()
+    except Exception:
+        logger.exception("Не удалось запустить планировщик")
+    try:
+        yield
+    finally:
+        try:
+            scheduler.shutdown(wait=False)
+        except Exception:
+            logger.exception("Ошибка при остановке планировщика")
+            await provider_client.close()
+        finally:
+            await provider_client.close()
 
 
 app = FastAPI(
