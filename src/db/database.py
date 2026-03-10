@@ -10,10 +10,9 @@ class Base(DeclarativeBase):
     pass
 
 
-# Создание асинхронного движка базы данных
 engine = create_async_engine(settings.get_db, echo=False, pool_pre_ping=True)
 
-# Создание фабрики сессий
+
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
