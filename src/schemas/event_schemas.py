@@ -31,7 +31,7 @@ class PlaceDetailChangeCreate(PlaceDetail):
 class EventListItem(_OrmBase):
     id: UUID
     name: str
-    place: PlaceBase
+    place: PlaceDetail
     event_time: datetime
     registration_deadline: datetime
     status: str
