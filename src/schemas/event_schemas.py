@@ -4,11 +4,15 @@ from uuid import UUID
 from pydantic import BaseModel
 
 
+class _OrmBase(BaseModel):
+    model_config = {"from_attributes": True}
+
+
 class HealthResponse(BaseModel):
     status: str
 
 
-class PlaceBase(BaseModel):
+class PlaceBase(_OrmBase):
     id: UUID
     name: str
     city: str
@@ -24,8 +28,7 @@ class PlaceDetailChangeCreate(PlaceDetail):
     created_at: datetime
 
 
-# убрать, идентичен  EventDetail
-class EventListItem(BaseModel):
+class EventListItem(_OrmBase):
     id: UUID
     name: str
     place: PlaceBase
@@ -33,8 +36,6 @@ class EventListItem(BaseModel):
     registration_deadline: datetime
     status: str
     number_of_visitors: int
-
-    model_config = {"from_attributes": True}
 
 
 class EventDetail(BaseModel):
@@ -48,8 +49,6 @@ class EventDetail(BaseModel):
     changed_at: datetime
     created_at: datetime
     status_changed_at: datetime
-
-    model_config = {"from_attributes": True}
 
 
 class EventListResponse(BaseModel):
