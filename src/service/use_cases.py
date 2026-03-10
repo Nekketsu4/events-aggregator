@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import typing
 from datetime import datetime, timezone
 
 from loguru import logger
@@ -15,7 +16,14 @@ from src.exceptions.event_exc import (
 )
 from src.repository.events import IEventRepository
 from src.repository.tickets import ITicketRepository
-from src.service.event_provider_client import IEventsProviderClient
+
+
+class IEventsProviderClient(typing.Protocol):
+    async def register(
+        self, event_id: str, first_name: str, last_name: str, email: EmailStr, seat: str
+    ) -> str: ...
+    async def unregister(self, event_id: str, ticket_id: str) -> bool: ...
+    async def seats(self, event_id: str) -> list[str]: ...
 
 
 class GetSeatsUsecase:

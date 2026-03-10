@@ -16,8 +16,7 @@ from src.repository.events import EventRepository, IEventRepository
 from src.repository.tickets import ITicketRepository, TicketRepository
 from src.schemas import event_schemas, seat_schemas, sync_schemas, ticket_schemas
 from src.service.event_provider_client import (
-    IEventsProviderClient,
-    provider_client,
+    get_provider_client,
 )
 from src.service.sync_launch import launch_sync
 from src.service.use_cases import (
@@ -85,7 +84,7 @@ async def get_event(
 async def get_seats(
     event_id: UUID,
     session: AsyncSession = Depends(get_async_db_session),
-    client: IEventsProviderClient = Depends(provider_client),
+    client=Depends(get_provider_client),
 ):
     """
     Получить список свободных мест на мероприятие(по ID)
@@ -120,7 +119,7 @@ async def get_seats(
 async def create_ticket(
     body: ticket_schemas.CreateTicketRequest,
     session: AsyncSession = Depends(get_async_db_session),
-    client: IEventsProviderClient = Depends(provider_client),
+    client=Depends(get_provider_client),
 ):
     """
     Регистрация места на событие
@@ -157,7 +156,7 @@ async def create_ticket(
 async def cancel_ticket(
     ticket_id: UUID,
     session: AsyncSession = Depends(get_async_db_session),
-    client: IEventsProviderClient = Depends(provider_client),
+    client=Depends(get_provider_client),
 ):
     """
     Отмена регистрации на событие
